@@ -888,7 +888,7 @@ function showWelcome() {
     const go = h('button', 'btn btn-accent', prose);
     go.type = 'button';
     go.append(icon('play'), document.createTextNode('Start experimenting'));
-    go.addEventListener('click', closeSheet);
+    go.addEventListener('click', () => closeSheet());
   }, {
     onClose: () => { state.seenWelcome = true; persist(); },
   });

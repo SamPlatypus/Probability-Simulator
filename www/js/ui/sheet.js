@@ -16,13 +16,16 @@ export function openSheet(title, build, { onClose } = {}) {
   onCloseCb = onClose || null;
   s.hidden = false;
   backdrop().hidden = false;
+  // A history entry lets the Android back button / browser back close the sheet.
+  if (!(history.state && history.state.sheet)) history.pushState({ sheet: true }, '');
   document.body.style.overflow = 'hidden';
   requestAnimationFrame(() => document.getElementById('sheetClose').focus({ preventScroll: true }));
 }
 
-export function closeSheet() {
+export function closeSheet(fromHistory = false) {
   const s = sheet();
   if (s.hidden) return;
+  if (!fromHistory && history.state && history.state.sheet) history.back();
   s.hidden = true;
   backdrop().hidden = true;
   s.style.transform = '';
@@ -36,8 +39,9 @@ export function closeSheet() {
 export function isSheetOpen() { return !sheet().hidden; }
 
 export function initSheet() {
-  document.getElementById('sheetClose').addEventListener('click', closeSheet);
-  backdrop().addEventListener('click', closeSheet);
+  document.getElementById('sheetClose').addEventListener('click', () => closeSheet());
+  backdrop().addEventListener('click', () => closeSheet());
+  window.addEventListener('popstate', () => { if (isSheetOpen()) closeSheet(true); });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && isSheetOpen()) closeSheet();
     if (e.key === 'Tab' && isSheetOpen()) trapFocus(e);

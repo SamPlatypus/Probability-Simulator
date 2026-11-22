@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Probability Lab</string>
+    <string name="title_activity_main">Probability Lab</string>
+    <string name="package_name">io.github.samplatypus.probabilitylab</string>
+    <string name="custom_url_scheme">io.github.samplatypus.probabilitylab</string>
+</resources>

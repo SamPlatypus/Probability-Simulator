@@ -1,0 +1,18 @@
+{
+  "appId": "io.github.samplatypus.probabilitylab",
+  "appName": "Probability Lab",
+  "webDir": "www",
+  "backgroundColor": "#f4f3ef",
+  "android": {
+    "backgroundColor": "#f4f3ef",
+    "allowMixedContent": false,
+    "captureInput": false,
+    "webContentsDebuggingEnabled": false
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "initialViewportFitValueHint": "cover"
+    }
+  }
+}

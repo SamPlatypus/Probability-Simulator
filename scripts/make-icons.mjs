@@ -49,4 +49,24 @@ for (const [path, size, inset, shape] of TARGETS) {
   await page.screenshot({ path: out(path), omitBackground: bg === 'transparent', clip: { x: 0, y: 0, width: size, height: size } });
   console.log('wrote', path);
 }
+// Android splash screens: the icon centred on the app's light background.
+if (withAndroid) {
+  const res = 'android/app/src/main/res';
+  const SPLASH = [
+    ['drawable', 480, 320], ['drawable-land-mdpi', 480, 320], ['drawable-land-hdpi', 800, 480], ['drawable-land-xhdpi', 1280, 720],
+    ['drawable-land-xxhdpi', 1600, 960], ['drawable-land-xxxhdpi', 1920, 1280], ['drawable-port-mdpi', 320, 480],
+    ['drawable-port-hdpi', 480, 800], ['drawable-port-xhdpi', 720, 1280], ['drawable-port-xxhdpi', 960, 1600], ['drawable-port-xxxhdpi', 1280, 1920],
+  ];
+  for (const [dir, w, hgt] of SPLASH) {
+    const s = Math.round(Math.min(w, hgt) * 0.28);
+    await page.setViewportSize({ width: w, height: hgt });
+    await page.setContent(`<html><body style="margin:0;width:${w}px;height:${hgt}px;display:grid;place-items:center;background:#f4f3ef;font-family:system-ui,sans-serif">
+      <div style="display:grid;justify-items:center;gap:${Math.round(s * 0.12)}px">
+        <div style="width:${s}px;height:${s}px;filter:drop-shadow(0 ${s * 0.04}px ${s * 0.1}px rgba(29,85,168,.3))">${svg.replace('<svg ', '<svg width="100%" height="100%" ')}</div>
+        <div style="font-weight:750;font-size:${Math.round(s * 0.17)}px;color:#0b0b0b;letter-spacing:-0.01em">Probability Lab</div>
+      </div></body></html>`);
+    await page.screenshot({ path: out(`${res}/${dir}/splash.png`), clip: { x: 0, y: 0, width: w, height: hgt } });
+  }
+  console.log('wrote Android splash screens');
+}
 await browser.close();
