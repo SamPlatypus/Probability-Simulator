@@ -15,13 +15,13 @@ export default function galtonStage(root, model, ctx) {
 
   function readColors() {
     colors = {
-      peg: cssVar('--peg'),
-      ball: cssVar('--s1'),
-      ballHi: cssVar('--ball-hi'),
-      bin: cssVar('--s1'),
-      binWash: cssVar('--bin-wash'),
-      wall: cssVar('--line'),
-      text: cssVar('--ink-3'),
+      peg: cssVar('--peg', root),
+      ball: cssVar('--s1', root),
+      ballHi: cssVar('--ball-hi', root),
+      bin: cssVar('--s1', root),
+      binWash: cssVar('--bin-wash', root),
+      wall: cssVar('--line', root),
+      text: cssVar('--ink-3', root),
     };
   }
 

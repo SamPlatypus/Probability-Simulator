@@ -132,7 +132,7 @@ export class Histogram {
         const x = L.x + band * i + (band - barW) / 2;
         const y = Y(v);
         const color = barColor(m, i, col);
-        c.fillStyle = mask[i] ? color : withAlpha(color, 0.32);
+        c.fillStyle = mask[i] || m.outcomes[i].slot ? color : withAlpha(color, 0.32);
         roundedBar(c, x, y, barW, L.b - y, Math.min(4, barW / 2));
       }
 
@@ -192,8 +192,13 @@ export class Histogram {
       c.font = `500 11px ${FONT}`;
       c.textAlign = 'center';
       c.textBaseline = 'top';
+      // Full names when every one fits its slot, else the short form.
+      let fullW = 0;
+      for (const o of m.outcomes) fullW = Math.max(fullW, c.measureText(o.label).width);
+      const useFull = fullW + 8 <= band;
+      const lab = (o) => (useFull ? o.label : o.short);
       let maxLW = 0;
-      for (const o of m.outcomes) maxLW = Math.max(maxLW, c.measureText(o.short).width);
+      for (const o of m.outcomes) maxLW = Math.max(maxLW, c.measureText(lab(o)).width);
       let every = Math.max(1, Math.ceil((maxLW + 8) / band));
       if (every > 1 && m.numeric) every = [2, 5, 10, 20, 25, 50].find((s) => s >= every) || every;
       for (let i = 0; i < k; i++) {
@@ -202,7 +207,17 @@ export class Histogram {
         if (!show) continue;
         c.fillStyle = mask[i] ? col.ink : col.ink3;
         c.font = `${mask[i] ? 650 : 500} 11px ${FONT}`;
-        c.fillText(o.short, L.x + band * (i + 0.5), L.b + 6);
+        c.fillText(lab(o), L.x + band * (i + 0.5), L.b + 6);
+      }
+      // Selection marks for categorical events: a short ink rule under each chosen label.
+      if (!m.numeric) {
+        c.fillStyle = col.ink;
+        for (let i = 0; i < k; i++) {
+          if (!mask[i]) continue;
+          const cx = L.x + band * (i + 0.5);
+          const lw = Math.min(band - 6, Math.max(14, c.measureText(lab(m.outcomes[i])).width));
+          c.fillRect(cx - lw / 2, L.b + 21, lw, 2);
+        }
       }
       // Anchor caret for numeric events.
       if (this.data.anchor !== null && this.data.anchor !== undefined && m.numeric) {
@@ -247,7 +262,7 @@ export class Histogram {
         const v = this.disp[i];
         const color = barColor(m, i, col);
         if (v > 0 && !predicting) {
-          c.fillStyle = mask[i] ? color : withAlpha(color, 0.32);
+          c.fillStyle = mask[i] || m.outcomes[i].slot ? color : withAlpha(color, 0.32);
           // Rare outcomes get a minimum visible sliver once they've happened.
           roundedBar(c, L.x, y, Math.max(obs[i] > 0 ? 2 : 0, X(v) - L.x), barH, 4, true);
         }

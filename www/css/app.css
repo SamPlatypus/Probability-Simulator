@@ -107,6 +107,7 @@ body {
 button { font: inherit; color: inherit; }
 button:not(:disabled) { cursor: pointer; }
 h1, h2, h3, p { margin: 0; }
+[hidden] { display: none !important; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
 .ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
@@ -168,11 +169,14 @@ h1, h2, h3, p { margin: 0; }
 
 /* ---------- Layout & cards ---------- */
 .layout { display: grid; gap: 14px; padding: 0 12px; max-width: 1240px; margin: 0 auto; }
-.col { display: grid; gap: 14px; align-content: start; min-width: 0; }
+.col { display: grid; gap: 14px; align-content: start; grid-auto-rows: max-content; min-width: 0; }
 @media (min-width: 900px) {
   .layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); padding: 0 20px; gap: 18px; }
   .col { gap: 18px; }
-  .col-a { position: sticky; top: calc(120px + var(--safe-t)); }
+  .col-a {
+    position: sticky; top: calc(116px + var(--safe-t)); max-height: calc(100vh - 128px - var(--safe-t));
+    overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding: 2px; margin: -2px;
+  }
 }
 .card {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
@@ -340,13 +344,13 @@ h1, h2, h3, p { margin: 0; }
 .die.d4, .die.d8, .die.d10, .die.d12, .die.d20 { background: linear-gradient(160deg, #ffffff, #dfe3ea); filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35)); box-shadow: none; }
 
 /* Spinner */
-.spin-box { position: absolute; inset: 40px 0 10px; display: grid; place-items: center; }
-.spin-svg { height: 100%; max-width: 92%; overflow: visible; filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.4)); }
+.spin-box { position: absolute; inset: 44px 0 12px; }
+.spin-svg { position: absolute; top: 0; left: 50%; height: 100%; max-width: 94%; aspect-ratio: 1 / 1; transform: translateX(-50%); overflow: visible; filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.4)); }
 .spin-rim { fill: #0b0f17; stroke: rgba(255, 255, 255, 0.25); stroke-width: 1; }
 .spin-wheel { transform-box: view-box; transform-origin: 100px 100px; }
 .sector { stroke: #0b0f17; stroke-width: 1.5; transition: filter 0.25s; }
 .sector.won { filter: brightness(1.25) saturate(1.1); }
-.sector-label { font: 800 15px var(--font); fill: #fff; pointer-events: none; }
+.sector-label { font: 800 15px var(--font); fill: #fff; pointer-events: none; transform-box: fill-box; transform-origin: center; }
 .sector-label.slot-4 { fill: #0b0b0b; }
 .spin-tick { stroke: rgba(255, 255, 255, 0.45); stroke-width: 1; }
 .spin-hub { fill: #f4f6fa; stroke: #0b0f17; stroke-width: 2; }
@@ -568,6 +572,11 @@ tr.in td:first-child { color: var(--accent); font-weight: 700; }
   border: 1px solid var(--line); border-bottom: 0; border-radius: 24px 24px 0 0; box-shadow: var(--shadow-lg);
   padding: 10px 14px calc(8px + var(--safe-b));
 }
+/* Wide screens: the dock sits inline under the stage instead of floating. */
+.dock.inline { position: static; display: block; pointer-events: auto; }
+.dock.inline .dock-inner { border-radius: var(--radius); border: 1px solid var(--line); box-shadow: var(--shadow); padding: 12px 14px; margin: 0; max-width: none; }
+body.dock-inline .app { padding-bottom: 24px; }
+body.dock-inline .toast { bottom: 28px; }
 @media (min-width: 790px) {
   .dock-inner { border-radius: 24px; margin-bottom: 14px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
   .app { padding-bottom: calc(var(--dock-h) + 30px); }
@@ -580,7 +589,7 @@ tr.in td:first-child { color: var(--accent); font-weight: 700; }
 .trial-chips .chip { min-height: 32px; padding: 4px 11px; font-variant-numeric: tabular-nums; }
 .dock-main .icon-btn { background: var(--surface-2); border: 1px solid var(--line); width: 46px; height: 46px; }
 .speed { flex: 1; min-width: 0; display: grid; }
-.speed label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 650; color: var(--ink-3); }
+.speed label { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 650; color: var(--ink-3); }
 .speed output { color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .run-btn {
   flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 124px; height: 52px; padding: 0 18px;

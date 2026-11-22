@@ -23,7 +23,7 @@ export default function birthdayStage(root, model, ctx) {
 
   const readColors = () => {
     colors = {
-      cell: cssVar('--cell'), one: cssVar('--s1'), match: cssVar('--s2'), ink: cssVar('--ink-2'), muted: cssVar('--ink-3'), surface: cssVar('--stage-ring'),
+      cell: cssVar('--cell', root), one: cssVar('--s1', root), match: cssVar('--s2', root), ink: cssVar('--ink-2', root), muted: cssVar('--ink-3', root), surface: cssVar('--stage-ring', root),
     };
   };
   readColors();

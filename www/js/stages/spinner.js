@@ -15,6 +15,7 @@ export default function spinnerStage(root, model, ctx) {
   svg('circle', { cx: 100, cy: 100, r: R + 5, class: 'spin-rim' }, s);
   const wheel = svg('g', { class: 'spin-wheel' }, s);
   const sectors = [];
+  const labels = [];
   let start = 0;
   model.bounds.forEach((end, i) => {
     const slot = model.outcomes[i].slot;
@@ -34,6 +35,7 @@ export default function spinnerStage(root, model, ctx) {
       const [tx, ty] = polar(mid, R * (end - start > 90 ? 0.58 : 0.68));
       const t = svg('text', { x: tx, y: ty, class: `sector-label slot-${slot}`, 'text-anchor': 'middle', 'dominant-baseline': 'central' }, wheel);
       t.textContent = model.outcomes[i].label;
+      labels.push(t);
     }
     start = end;
   });
@@ -47,7 +49,11 @@ export default function spinnerStage(root, model, ctx) {
   svg('path', { d: 'M100 17 L91 1 Q100 -3 109 1 Z', class: 'spin-pointer' }, s);
 
   let rotation = 0;
-  const setRot = (deg) => { wheel.style.transform = `rotate(${deg}deg)`; };
+  // Labels counter-rotate about their own centres so they stay upright.
+  const setRot = (deg) => {
+    wheel.style.transform = `rotate(${deg}deg)`;
+    labels.forEach((t) => { t.style.transform = `rotate(${-deg}deg)`; });
+  };
 
   function targetFor(angle, turns) {
     const want = ((-angle % 360) + 360) % 360;
@@ -77,8 +83,9 @@ export default function spinnerStage(root, model, ctx) {
       const from = rotation;
       rotation = targetFor(t.angle, turns);
       ctx.sound('spin');
-      await sched.animate(wheel, [{ transform: `rotate(${from}deg)` }, { transform: `rotate(${rotation}deg)` }],
-        { duration: ms * 0.92, easing: 'cubic-bezier(.12,.62,.18,1)' });
+      const timing = { duration: ms * 0.92, easing: 'cubic-bezier(.12,.62,.18,1)' };
+      labels.forEach((t) => sched.animate(t, [{ transform: `rotate(${-from}deg)` }, { transform: `rotate(${-rotation}deg)` }], timing));
+      await sched.animate(wheel, [{ transform: `rotate(${from}deg)` }, { transform: `rotate(${rotation}deg)` }], timing);
       setRot(rotation);
       ctx.sound('tick');
       ctx.haptic();
