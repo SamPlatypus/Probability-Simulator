@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Probability Lab</title>
+  <meta name="description" content="Build probability intuition by experiment: roll dice, flip coins, spin spinners, draw marbles and cards, drop balls through a Galton board, play Monty Hall and test the birthday problem — all offline.">
+  <meta name="theme-color" content="#f4f3ef" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Prob Lab">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="css/app.css">
+  <script>
+    // Apply the saved theme before first paint to avoid a flash.
+    try {
+      var s = JSON.parse(localStorage.getItem('problab.v1') || '{}');
+      var t = s.settings && s.settings.theme;
+      if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+          <defs>
+            <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#3b8cf0"/><stop offset="1" stop-color="#1d55a8"/>
+            </linearGradient>
+          </defs>
+          <rect width="64" height="64" rx="16" fill="url(#lg)"/>
+          <rect x="13" y="38" width="7" height="14" rx="2.5" fill="#fff" opacity=".55"/>
+          <rect x="23" y="27" width="7" height="25" rx="2.5" fill="#fff" opacity=".8"/>
+          <rect x="33" y="19" width="7" height="33" rx="2.5" fill="#fff"/>
+          <rect x="43" y="31" width="7" height="21" rx="2.5" fill="#fff" opacity=".7"/>
+          <path d="M10 44 C20 44 24 16 36 16 S48 40 56 42" fill="none" stroke="#ffd166" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <div class="brand-text">
+          <h1>Probability Lab</h1>
+          <p id="modeBlurb">Experiments in chance</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="offline-pill" id="offlinePill" hidden><i data-icon="check"></i>Offline ready</span>
+        <button class="icon-btn" id="learnBtn" type="button" aria-label="Learn about this experiment" title="Learn"><i data-icon="book"></i></button>
+        <button class="icon-btn" id="settingsBtn" type="button" aria-label="Settings" title="Settings"><i data-icon="settings"></i></button>
+      </div>
+    </header>
+
+    <nav class="modes" id="modes" role="tablist" aria-label="Experiments"></nav>
+
+    <main class="layout" id="main">
+      <div class="col col-a">
+        <section class="card stage-card" aria-label="Experiment stage">
+          <div class="stage" id="stage">
+            <div class="stage-hud">
+              <div class="caption" id="caption">
+                <strong id="capMain">Ready</strong>
+                <span id="capSub">Press Run to start</span>
+              </div>
+              <div class="trial-count" aria-live="off"><b id="trialCount">0</b><span>trials</span></div>
+            </div>
+            <div id="stageRoot" class="stage-canvas"></div>
+            <div class="stream-badge" id="streamBadge" hidden><i data-icon="bolt"></i><span>Too fast to watch — showing a sample</span></div>
+          </div>
+          <div class="recent" id="recent" aria-label="Most recent outcomes, newest first"></div>
+        </section>
+
+        <section class="card setup-card" aria-labelledby="setupTitle">
+          <header class="card-head">
+            <div>
+              <h2 id="setupTitle">Set up</h2>
+              <p class="sub">Changing these starts a fresh run</p>
+            </div>
+            <button class="chip chip-accent" id="tryBtn" type="button"><i data-icon="sparkle"></i>Ideas to try</button>
+          </header>
+          <div class="controls" id="controls"></div>
+        </section>
+      </div>
+
+      <div class="col col-b">
+        <section class="card chart-card" aria-labelledby="histTitle">
+          <header class="card-head">
+            <div>
+              <h2 id="histTitle">Outcomes</h2>
+              <p class="sub" id="theoryLabel"></p>
+            </div>
+            <div class="card-tools">
+              <div class="seg seg-sm" role="radiogroup" aria-label="Show bars as" id="unitSeg">
+                <button type="button" class="seg-btn" role="radio" data-unit="pct" aria-checked="true">%</button>
+                <button type="button" class="seg-btn" role="radio" data-unit="count" aria-checked="false">Count</button>
+              </div>
+            </div>
+          </header>
+          <div class="chart-toolbar">
+            <div class="legend" id="legend"></div>
+            <div class="tool-chips">
+              <button class="chip" id="theoryToggle" type="button" aria-pressed="true"><i data-icon="eye"></i>Theory</button>
+              <button class="chip" id="predictBtn" type="button"><i data-icon="pencil"></i>Predict</button>
+            </div>
+          </div>
+          <div class="chart-wrap" id="histWrap">
+            <canvas id="hist" tabindex="0" role="img" aria-label="Histogram of outcomes"></canvas>
+          </div>
+          <div class="predict-bar" id="predictBar" hidden>
+            <p><b>Sketch your prediction.</b> <span id="predictTotal">Total 0%</span></p>
+            <div class="predict-actions">
+              <button type="button" class="chip" id="predictEven">Even</button>
+              <button type="button" class="chip" id="predictClear">Clear</button>
+              <button type="button" class="chip" id="predictCancel">Cancel</button>
+              <button type="button" class="btn btn-accent small" id="predictDone"><i data-icon="check"></i>Done</button>
+            </div>
+          </div>
+          <div class="event-bar" id="eventBar">
+            <div class="event-ops" id="eventOps"></div>
+            <p class="readout" id="readout"></p>
+          </div>
+        </section>
+
+        <section class="card stats-card" aria-labelledby="statsTitle">
+          <header class="card-head">
+            <div>
+              <h2 id="statsTitle">Observed vs. theory</h2>
+              <p class="sub" id="statsSub">Experimental probability compared with theoretical</p>
+            </div>
+          </header>
+          <div class="tiles" id="tiles"></div>
+          <div class="checks" id="checks"></div>
+        </section>
+
+        <section class="card conv-card" aria-labelledby="convTitle">
+          <header class="card-head">
+            <div>
+              <h2 id="convTitle">Does it settle down?</h2>
+              <p class="sub" id="convSub"></p>
+            </div>
+          </header>
+          <div class="legend" id="convLegend"></div>
+          <div class="chart-wrap conv-wrap">
+            <canvas id="conv" role="img" aria-label="Running percentage over trials"></canvas>
+            <div class="tip" id="convTip" hidden>
+              <div class="tip-n" data-k="n"></div>
+              <div class="tip-row"><i class="key line s1"></i><b data-k="obs"></b><span>observed</span></div>
+              <div class="tip-row"><i class="key line ink"></i><b data-k="th"></b><span>theory</span></div>
+              <div class="tip-row"><i class="key band"></i><b data-k="band"></b><span>95% range</span></div>
+            </div>
+          </div>
+          <p class="note">The shaded band is where 95% of runs would be. It narrows as trials pile up — that's the <b>Law of Large Numbers</b>. Few trials: big swings. Many trials: close to theory.</p>
+        </section>
+
+        <section class="card table-card">
+          <details id="tableDetails">
+            <summary><i data-icon="table"></i><span>Data table</span><i data-icon="chevron" class="ic chev"></i></summary>
+            <div class="table-scroll"><table id="dataTable"></table></div>
+            <div class="table-actions">
+              <button type="button" class="btn btn-soft" id="copyBtn"><i data-icon="table"></i>Copy</button>
+              <button type="button" class="btn btn-soft" id="exportBtn"><i data-icon="download"></i>Export CSV</button>
+            </div>
+          </details>
+        </section>
+      </div>
+    </main>
+
+    <div class="dock" id="dock">
+      <div class="dock-inner">
+        <div class="dock-row">
+          <span class="dock-label" id="trialsLabel">Trials</span>
+          <div class="trial-chips" id="trialChips" role="radiogroup" aria-labelledby="trialsLabel"></div>
+        </div>
+        <div class="dock-row dock-main">
+          <button class="icon-btn" id="resetBtn" type="button" aria-label="Reset results" title="Reset (R)"><i data-icon="reset"></i></button>
+          <button class="icon-btn" id="stepBtn" type="button" aria-label="Run one trial" title="One trial (S)"><i data-icon="step"></i></button>
+          <div class="speed">
+            <label for="speed"><span>Speed</span><output id="speedLabel"></output></label>
+            <input id="speed" class="range" type="range" min="0" max="7" step="1" aria-describedby="speedLabel">
+          </div>
+          <button class="run-btn" id="runBtn" type="button"><span class="run-ic" id="runIc"></span><span id="runLabel">Run</span></button>
+        </div>
+        <p class="dock-eta" id="eta"></p>
+      </div>
+    </div>
+
+    <div class="sheet-backdrop" id="backdrop" hidden></div>
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+      <div class="sheet-grip" id="sheetGrip"><span></span></div>
+      <header class="sheet-head">
+        <h2 id="sheetTitle"></h2>
+        <button class="icon-btn" id="sheetClose" type="button" aria-label="Close"><i data-icon="close"></i></button>
+      </header>
+      <div class="sheet-body" id="sheetBody"></div>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toastText"></span><button type="button" id="toastAction" hidden></button></div>
+    <div class="sr-only" id="announcer" aria-live="polite"></div>
+  </div>
+  <noscript><p style="padding:24px">Probability Lab needs JavaScript to run its simulations.</p></noscript>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
